@@ -5,7 +5,10 @@ class ChartResults(object):
     """
     Class to represent the output nicely in the terminal
     """
-    def __init__(self, records: List[Tuple[int, int]], song_metadata: Dict[int, Dict[str, str]],  count: int = 0) -> None:
+
+    def __init__(
+        self, records: List[Tuple[int, int]], song_metadata: Dict[int, Dict[str, str]], count: int = 0
+    ) -> None:
         self.count: int = count
         self.song_counts: List[Tuple[int, int]] = records
         self.song_metadata: Dict[int, Dict[str, str]] = song_metadata

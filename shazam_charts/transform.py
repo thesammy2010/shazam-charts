@@ -107,8 +107,6 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
         # logging.info(chart)
 
         # print the chart data
-        logging.info(
-            ChartResults(records=sorted_charts, count=count, song_metadata=song_metadata)
-        )
+        logging.info(ChartResults(records=sorted_charts, count=count, song_metadata=song_metadata))
 
     return  # exit method
