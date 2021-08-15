@@ -68,7 +68,7 @@ def main() -> None:
 
     # handle verbosity
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s - %(message)s")
+        logging.basicConfig(level=logging.DEBUG, format="%(message)s")
     else:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
 

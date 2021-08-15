@@ -7,3 +7,4 @@ install:
 test:
 	echo "Running tests"
 	python3 -m unittest "tests/cli_test.py"
+	python3 -m unittest "tests/results_test.py"
