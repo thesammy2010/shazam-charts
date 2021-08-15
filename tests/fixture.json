@@ -1,0 +1,36 @@
+{
+    "client":"SHAZAM",
+    "geolocation":{
+
+    },
+    "installation":{
+        "accountId":"9c109faa6968427ed5564768a365aab6de123e0f",
+        "application":{
+            "flavour":"SHAZAM",
+            "version":"11.0.0"
+        },
+        "country":"US",
+        "device":{
+            "operatingSystem":{
+                "name":"iOS",
+                "version":"10.2.1"
+            }
+        },
+        "language":"en-US",
+        "platform":"IPHONE"
+    },
+    "match":{
+        "track":{
+            "id":340816375,
+            "metadata":{
+                "artistname":"Imagine Dragons",
+                "tracktitle":"Believer"
+            },
+            "offset":195.252
+        }
+    },
+    "tagid":"5DBA6746-B180-434D-ABA4-9FA5E98E6231",
+    "timestamp":1495195194529,
+    "timezone":"America/New_York",
+    "type":"AUDIO"
+}
