@@ -1,4 +1,5 @@
 import sys
+import logging
 from unittest import TestCase, mock
 from argparse import Namespace
 
@@ -9,6 +10,12 @@ class CLIArgsTest(TestCase):
     """
     This class contains all the tests for the CLI part of this code
     """
+
+    def setUp(self) -> None:
+        logging.basicConfig(level=logging.CRITICAL)
+
+    def tearDown(self) -> None:
+        logging.basicConfig(level=logging.WARNING)
 
     def test_valid_no_verbose(self) -> None:
         """
