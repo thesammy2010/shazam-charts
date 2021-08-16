@@ -3,7 +3,7 @@ import json
 from typing import Any, Dict, List, Tuple, Set, DefaultDict
 from collections import defaultdict
 
-from shazam_charts.results import ChartResults
+from shazam_charts.results import ChartResults, StateChartResults
 
 
 def parse_line(line: str, line_number: int) -> Dict[str, str or int]:
@@ -58,13 +58,13 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
     :return: Nothing
     """
 
-    if not method == "chart":
-        raise NotImplementedError(f"Method {method} has not been implemented")
+    # if not method == "chart":
+    #     raise NotImplementedError(f"Method {method} has not been implemented")
 
     # data structures for different methods
     song_metadata: Dict[int, Dict[str, str]] = {}
-    chart: DefaultDict[int] = defaultdict(int)
-    state_chart: Any = {}
+    chart: DefaultDict[int, int] = defaultdict(int)  # {song_id: count}
+    state_chart: Dict[str, DefaultDict[int, int]] = {}  # {state: {song_id: count}}
 
     # read source file and begin extracting
 
@@ -89,9 +89,6 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
             if processed_line["tag_id"] in tag_ids:
                 continue
 
-            # add song info to data
-            chart[processed_line["song_id"]] += 1
-
             # update song metadata if needed
             if processed_line["song_id"] not in song_metadata:
                 song_metadata[processed_line["song_id"]] = {
@@ -99,14 +96,36 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
                     "artist": processed_line["song_artist"],
                 }
 
+            # add song info to data
+            if method == "chart":
+                chart[processed_line["song_id"]] += 1
+            elif method == "state_chart":
+
+                # if there's no location data, set to no state
+                if not processed_line.get("country") == "United States":
+                    state: str = "Undefined"
+                elif not processed_line.get("state"):
+                    state: str = "Undefined"
+                else:
+                    state: str = processed_line.get("state")
+
+                # initialise region
+                if state not in state_chart:
+                    logging.debug(f"Adding state: {state}")
+                    state_chart[state] = defaultdict(int)
+
+                # add song info to data
+                state_chart[state][processed_line["song_id"]] += 1
+
     if method == "chart":
         # sort the chart
         sorted_charts: List[Tuple[int, int]] = sorted(chart.items(), key=lambda x: x[1], reverse=True)
 
-        # logging.info(sorted_charts)
-        # logging.info(chart)
-
         # print the chart data
         logging.info(ChartResults(records=sorted_charts, count=count, song_metadata=song_metadata))
+
+    elif method == "state_chart":
+        # sorting is handled in the function
+        logging.info(StateChartResults(records=state_chart, count=count, song_metadata=song_metadata))
 
     return  # exit method
