@@ -41,16 +41,18 @@ class StateChartResults(object):
         self.count: int = count
         self.song_counts: Dict[str, DefaultDict[int, int]] = records
         self.song_metadata: Dict[int, Dict[str, str]] = song_metadata
-        self._max_len: int = len(self.song_counts)
+        self._max_len: int = 0
+        for country, dictionary in self.song_counts.items():
+            if len(dictionary) > self._max_len:
+                self._max_len = len(dictionary)
 
     def __repr__(self) -> str:
         lines: List[str] = []
 
         for state in sorted(self.song_counts.keys()):
-            logging.debug(f"State: {state}")
             lines.append(f"\n{state}")
             state_sorted: List[Tuple[int, int]] = sorted(
-                self.song_counts[state].items(), key= lambda x: x[1], reverse=True
+                self.song_counts[state].items(), key=lambda x: x[1], reverse=True
             )
             for n in range(1, self.count + 1):
                 if n > self._max_len:
@@ -58,7 +60,9 @@ class StateChartResults(object):
                 song_id: int = state_sorted[n - 1][0]
                 song_info = self.song_metadata[song_id]
 
-                lines.append("%-5i%-50s%-50s" % (n, song_info.get("title"), song_info.get("artist")))
+                lines.append(
+                    "%-5i%-50s%-50s" % (n, song_info.get("title", "<error>"), song_info.get("artist", "<error>"))
+                )
 
         return "\n".join(lines)
 

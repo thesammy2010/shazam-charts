@@ -45,6 +45,41 @@ def parse_line(line: str, line_number: int) -> Dict[str, str or int]:
     return record
 
 
+def update_song_metadata(
+    index: Dict[int, Dict[str, str]], new_song: Dict[str, str or int]
+) -> Dict[int, Dict[str, str]]:
+
+    if new_song.get("song_id") in index:
+        return index
+
+    index[new_song["song_id"]] = {
+        "title": new_song["song_title"],
+        "artist": new_song["song_artist"],
+    }
+
+    return index
+
+
+def update_state_chart(
+    new_song: Dict[str, str or int], chart: Dict[str, DefaultDict[int, int]]
+) -> Dict[str, DefaultDict[int, int]]:
+    # if there's no location data, set state to Undefined
+    if not new_song.get("country") == "United States":
+        state: str = "Undefined"
+    else:
+        state: str = new_song.get("state", "Undefined")
+
+    # initialise region
+    if state not in chart:
+        logging.debug(f"Adding state: {state}")
+        chart[state] = defaultdict(int)
+
+    # add song info to data
+    chart[state][new_song["song_id"]] += 1  # type: ignore
+
+    return chart
+
+
 def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag-data.jsonl") -> None:
     """
     Main method to call from the CLI
@@ -67,7 +102,6 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
     state_chart: Dict[str, DefaultDict[int, int]] = {}  # {state: {song_id: count}}
 
     # read source file and begin extracting
-
     with open(file=filename, mode="r") as f:
         tag_ids: Set[str] = set()
         for n, line in enumerate(f.readlines()):
@@ -76,7 +110,7 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
             processed_line: Dict[str, str] = parse_line(line=line, line_number=n)
 
             # check that lines are being processed
-            if n % 1000 == 0:
+            if n % 1000 == 0 and n != 0:
                 logging.debug(f"Read {n} lines")
 
             # skip to next line if there is no data
@@ -90,36 +124,17 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
                 continue
 
             # update song metadata if needed
-            if processed_line["song_id"] not in song_metadata:
-                song_metadata[processed_line["song_id"]] = {
-                    "title": processed_line["song_title"],
-                    "artist": processed_line["song_artist"],
-                }
+            song_metadata = update_song_metadata(index=song_metadata, new_song=processed_line)
 
             # add song info to data
             if method == "chart":
-                chart[processed_line["song_id"]] += 1
+                chart[processed_line["song_id"]] += 1  # type: ignore
             elif method == "state_chart":
-
-                # if there's no location data, set to no state
-                if not processed_line.get("country") == "United States":
-                    state: str = "Undefined"
-                elif not processed_line.get("state"):
-                    state: str = "Undefined"
-                else:
-                    state: str = processed_line.get("state")
-
-                # initialise region
-                if state not in state_chart:
-                    logging.debug(f"Adding state: {state}")
-                    state_chart[state] = defaultdict(int)
-
-                # add song info to data
-                state_chart[state][processed_line["song_id"]] += 1
+                state_chart = update_state_chart(chart=state_chart, new_song=processed_line)
 
     if method == "chart":
         # sort the chart
-        sorted_charts: List[Tuple[int, int]] = sorted(chart.items(), key=lambda x: x[1], reverse=True)
+        sorted_charts: List[Tuple[int, int]] = sorted(chart.items(), key=lambda x: x[1], reverse=True)  # type: ignore
 
         # print the chart data
         logging.info(ChartResults(records=sorted_charts, count=count, song_metadata=song_metadata))
@@ -128,4 +143,4 @@ def transform(method: str, count: int, filename: str = "shazam_charts/shazam-tag
         # sorting is handled in the function
         logging.info(StateChartResults(records=state_chart, count=count, song_metadata=song_metadata))
 
-    return  # exit method
+    return
